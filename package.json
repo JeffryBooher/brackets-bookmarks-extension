@@ -1,0 +1,15 @@
+{
+    "name": "jeffbooher.bookmarks",
+    "title": "Brackets Bookmarks",
+    "description": "Bookmark lines and recall them later",
+    "homepage": "https://github.com/JeffryBooher/brackets-bookmarks-extension",
+    "version": "0.0.1",
+    "author": "Jeffry Booher|jsbooher@adobe.com (http://www.facebook.com/JeffryBooher)|@JeffryBooher",
+    "license": "MIT",
+    "i18n": [
+        "en"
+    ],
+    "engines": {
+        "brackets": ">=0.24.0"
+    }
+}

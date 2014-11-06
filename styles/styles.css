@@ -1,0 +1,15 @@
+.bookmark .CodeMirror-linenumber {
+    background-color: lightskyblue;
+    background-image: url('../images/bookmark.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    color: white;
+}
+
+.active-pane .bookmark .CodeMirror-linenumber {
+    background-color: dodgerblue;
+}
+
+.active-pane .bookmark.live-preview-sync-error .CodeMirror-linenumber {
+    background-color: mediumorchid !important;
+}
