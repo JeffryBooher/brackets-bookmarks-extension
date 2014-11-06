@@ -13,7 +13,7 @@ And recall those bookmarks later
 
 Bookmarks are serialized and remembered globally. Add bookmarks to a file, close the file, reopen the file. Brackets will restore the bookmarks. Bookmarks are represented with a color and a bookmark icon.
 
-Bookmarked lines with Live Editing Syntax error will show using a different color
+Bookmarked lines with Live Editing Syntax Errors will show using a different color
 
 ##TODO
 1. Localize. I've set this extension up for localization so please contribute pull requests to translate this extension
