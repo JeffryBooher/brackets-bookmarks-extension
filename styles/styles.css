@@ -3,7 +3,7 @@
     background-image: url('../images/bookmark.svg');
     background-size: contain;
     background-repeat: no-repeat;
-    color: white;
+    color: white !important;
 }
 
 .active-pane .bookmark .CodeMirror-linenumber {
@@ -12,4 +12,8 @@
 
 .active-pane .bookmark.live-preview-sync-error .CodeMirror-linenumber {
     background-color: mediumorchid !important;
+}
+
+.bookmark-notify {
+    background-color: dodgerblue;
 }

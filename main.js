@@ -49,10 +49,12 @@ define(function (require, exports, module) {
     // Define a preference to keep track of how many times our extension has been ivoked
     prefs.definePreference("bookmarks", "object", {});
 
+    // This is the model
     var _bookmarks = {};
     
     /**
-     * Saves bookmarks to the internal cache for the specified editor instance
+     * Updates the model with bookmarked line information for the 
+     *  specified editor instance
      * @param {!Editor} editor - brackets editor instance
      * @return {?Array.<Number>} array of cached bookmarked line numbers
      */
@@ -84,7 +86,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Clears the internal cache for the specified editor instance
+     * Clears the model for the specified editor instance
      * @param {!Editor} editor - brackets editor instance
      */
     function resetBookmarks(editor) {
@@ -94,7 +96,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Loads the cached bookmarks into the specified editor instance
+     * Loads the model into the specified editor instance
      * @param {!Editor} editor - brackets editor instance
      */
     function loadBookmarks(editor) {
@@ -119,6 +121,17 @@ define(function (require, exports, module) {
      */
     function gotoNextBookmark(forward) {
         var editor = EditorManager.getCurrentFullEditor();
+
+        function doJump(lineNo) {
+            editor.setCursorPos(lineNo, 0);
+            
+            var cm = editor._codeMirror;
+            cm.addLineClass(lineNo, "wrap", "bookmark-notify");
+            setTimeout(function () {
+                cm.removeLineClass(lineNo, "wrap", "bookmark-notify");
+            }, 100);
+        }
+        
         if (editor) {
             var cursor = editor.getCursorPos(),
                 fullPath = editor.document.file.fullPath,
@@ -136,30 +149,29 @@ define(function (require, exports, module) {
             for (index = (forward ? 0 : bm.length - 1); forward ? (index < bm.length) : (index >= 0); forward ? (index++) : (index--)) {
                 if (forward) {
                     if (bm[index] > cursor.line) {
-                        editor.setCursorPos(bm[index], 0);
+                        doJump(bm[index]);
                         return;
                     }
                     if (index === bm.length - 1) {
                         // wrap around just pick the first one in the list
                         if (bm[0] !== cursor.line) {
-                            editor.setCursorPos(bm[0], 0);
+                            doJump(bm[0]);
                         }
                         return;
                     }
                 } else {
                     if (bm[index] < cursor.line) {
-                        editor.setCursorPos(bm[index], 0);
+                        doJump(bm[index]);
                         return;
                     }
                     if (index === 0) {
                         // wrap around just pick the last one in the list
                         if (bm[bm.length - 1] !== cursor.line) {
-                            editor.setCursorPos(bm[bm.length - 1], 0);
+                            doJump(bm[bm.length - 1]);
                         }
                         return;
                     }
                 }
-                
             }
         }
     }
