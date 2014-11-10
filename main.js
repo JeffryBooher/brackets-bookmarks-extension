@@ -61,10 +61,13 @@ define(function (require, exports, module) {
     
     /**
      * Saves bookmarks to the internal cache for the specified editor instance
-     * @param {!Editor} editor - brackets editor instance
+     * @param {Editor=} editor - brackets editor instance. current editor if null
      * @return {?Array.<Number>} array of cached bookmarked line numbers
      */
     function saveBookmarks(editor) {
+        if (!editor) {
+            editor = EditorManager.getCurrentFullEditor();
+        }
         if (editor) {
             var i,
                 fullPath = editor.document.file.fullPath,
@@ -86,6 +89,8 @@ define(function (require, exports, module) {
             });
         
             _bookmarks[fullPath] = bookmarkedLines;
+            $(_bookmarks).triggerHandler("change");
+
             return bookmarkedLines;
         }
         return null;
@@ -98,14 +103,19 @@ define(function (require, exports, module) {
     function resetBookmarks(editor) {
         if (editor) {
             delete _bookmarks[editor.document.file.fullPath];
+            $(_bookmarks).triggerHandler("change");
         }
+        
     }
     
     /**
      * Loads the cached bookmarks into the specified editor instance
-     * @param {!Editor} editor - brackets editor instance
+     * @param {Editor=} editor - brackets editor instance. current editor if null
      */
     function loadBookmarks(editor) {
+        if (!editor) {
+            editor = EditorManager.getCurrentFullEditor();
+        }
         if (editor) {
             var cm = editor._codeMirror,
                 bm = _bookmarks[editor.document.file.fullPath];
@@ -198,26 +208,14 @@ define(function (require, exports, module) {
     
     function toggleBookmarkPanel() {
         if (!_bookmarksPanel) {
-            _bookmarksPanel = new BookmarksView(_bookmarks);
+            _bookmarksPanel = new BookmarksView(_bookmarks, saveBookmarks);
         }
         
         if (_bookmarksPanel.isOpen()) {
             _bookmarksPanel.close();
         } else {
-            var editor = EditorManager.getCurrentFullEditor();
-            if (editor) {
-                var fullPath = editor.document.file.fullPath,
-                    bm = _bookmarks[fullPath];
-
-                if (!bm || !bm.length) {
-                    saveBookmarks(editor);
-                }
-            }
-
             _bookmarksPanel.open();
         }
-        
-        //CommandManager.setChecked(CommandManager.get(CMD_TOGGLE_BOOKKMARK_VIEW), isBookmarkPanelVisible());
     }
     
     // load our styles

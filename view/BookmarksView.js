@@ -61,17 +61,19 @@ define(function (require, exports, module) {
      *      close - when the panel is closed.
      * 
      * @typedef {Object.<string, Array<number>>} BookmarksModel
-     * @parm {BookmarksModel} model - bookmarks model
+     * @param {BookmarksModel} model - bookmarks model
+     * @param {function=} beforeRender - function to call before rendering the view
      */
-    function BookmarksView(model) {
+    function BookmarksView(model, beforeRender) {
         var panelHtml  = Mustache.render(bookmarksPanelTemplate, {
                 Strings:     Strings
             });
 
-        this._panel    = WorkspaceManager.createBottomPanel("bookmarks", $(panelHtml), 100);
-        this._$panel   = this._panel.$panel;
-        this._$table   = this._$panel.find(".table-container");
-        this._model    = model;
+        this._panel         = WorkspaceManager.createBottomPanel("bookmarks", $(panelHtml), 100);
+        this._$panel        = this._panel.$panel;
+        this._$table        = this._$panel.find(".table-container");
+        this._model         = model;
+        this._beforeRender  = beforeRender;
     }
     
     /** @type {BookmarksModel} bookmarks model */
@@ -85,7 +87,10 @@ define(function (require, exports, module) {
     
     /** @type {number} The ID we use for timeouts when handling model changes. */
     BookmarksView.prototype._timeoutID = null;
-        
+
+    /** @type {function=} function that is called before refreshing the view */
+    BookmarksView.prototype._beforeRender = null;
+    
     /**
      * @private
      * Handles when model changes. Updates the view, buffering changes if necessary so as not to churn too much.
@@ -126,7 +131,6 @@ define(function (require, exports, module) {
                     var fullPathAndLineNo = $row.find(".bookmark-result").text();
 
                     CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPathAndLineNo});
-                    //@TODO: 
                 }
             });
         
@@ -139,6 +143,10 @@ define(function (require, exports, module) {
     BookmarksView.prototype._render = function () {
         var self = this,
             bookmarks = [];
+        
+        if (this._beforeRender) {
+            this._beforeRender();
+        }
         
         // Iterates throuh the files to display the results sorted by filenamess. The loop ends as soon as
         // we filled the results for one page
