@@ -197,14 +197,24 @@ define(function (require, exports, module) {
     }
     
     function toggleBookmarkPanel() {
-        if (_bookmarksPanel) {
-            if (_bookmarksPanel.isOpen()) {
-                _bookmarksPanel.close();
-            } else {
-                _bookmarksPanel.open();
-            }
-        } else {
+        if (!_bookmarksPanel) {
             _bookmarksPanel = new BookmarksView(_bookmarks);
+        }
+        
+        if (_bookmarksPanel.isOpen()) {
+            _bookmarksPanel.close();
+        } else {
+            var editor = EditorManager.getCurrentFullEditor();
+            if (editor) {
+                var fullPath = editor.document.file.fullPath,
+                    bm = _bookmarks[fullPath];
+
+                if (!bm || !bm.length) {
+                    saveBookmarks(editor);
+                }
+            }
+
+            _bookmarksPanel.open();
         }
         
         //CommandManager.setChecked(CommandManager.get(CMD_TOGGLE_BOOKKMARK_VIEW), isBookmarkPanelVisible());
@@ -227,7 +237,7 @@ define(function (require, exports, module) {
     menu.addMenuItem(CMD_GOTO_PREV_BOOKMARK, "Ctrl-Shift-P");
     
     menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
-    CommandManager.register(ExtensionStrings.TOGGLE_BOOKMARK_PANEL, CMD_TOGGLE_BOOKKMARK_VIEW, toggleBookmarkPanel);
+    CommandManager.register(ExtensionStrings.TOGGLE_BOOKMARKS_PANEL, CMD_TOGGLE_BOOKKMARK_VIEW, toggleBookmarkPanel);
     menu.addMenuDivider();
     menu.addMenuItem(CMD_TOGGLE_BOOKKMARK_VIEW);
     

@@ -3,7 +3,7 @@
     background-image: url('../images/bookmark.svg');
     background-size: contain;
     background-repeat: no-repeat;
-    color: white;
+    color: white !important;
 }
 
 .active-pane .bookmark .CodeMirror-linenumber {

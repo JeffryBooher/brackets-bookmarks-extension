@@ -30,5 +30,6 @@ define({
     "TOGGLE_BOOKMARK"                   : "Toggle Bookmark",
     "GOTO_NEXT_BOOKMARK"                : "Next Bookmark",
     "GOTO_PREV_BOOKMARK"                : "Previous Bookmark",
-    "TOGGLE_BOOKMARK_PANEL"             : "Show Bookmarks Panel"
+    "TOGGLE_BOOKMARKS_PANEL"            : "Show Bookmarks Panel",
+    "BOOKMARKS_PANEL_TITLE"             : "Bookmarks"
 });

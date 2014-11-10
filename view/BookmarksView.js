@@ -64,11 +64,12 @@ define(function (require, exports, module) {
      * @parm {BookmarksModel} model - bookmarks model
      */
     function BookmarksView(model) {
-        var panelHtml  = Mustache.render(bookmarksPanelTemplate);
+        var panelHtml  = Mustache.render(bookmarksPanelTemplate, {
+                Strings:     Strings
+            });
 
         this._panel    = WorkspaceManager.createBottomPanel("bookmarks", $(panelHtml), 100);
         this._$panel   = this._panel.$panel;
-        this._$title   = this._$panel.find(".title");
         this._$table   = this._$panel.find(".table-container");
         this._model    = model;
     }
@@ -78,9 +79,6 @@ define(function (require, exports, module) {
     
     /** @type {Panel} Bottom panel holding the bookmarks */
     BookmarksView.prototype._panel = null;
-    
-    /** @type {$.Element} The element where the title is placed */
-    BookmarksView.prototype._$title = null;
     
     /** @type {$.Element} The table that holds the results */
     BookmarksView.prototype._$table = null;
@@ -125,7 +123,7 @@ define(function (require, exports, module) {
                     $row.addClass("selected");
                     self._$selectedRow = $row;
                     
-                    var fullPathAndLineNo = $row.find(".line-text").text();
+                    var fullPathAndLineNo = $row.find(".bookmark-result").text();
 
                     CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPathAndLineNo});
                     //@TODO: 
@@ -139,15 +137,16 @@ define(function (require, exports, module) {
      * Shows the current set of results.
      */
     BookmarksView.prototype._render = function () {
-        var bookmarks = [];
+        var self = this,
+            bookmarks = [];
         
         // Iterates throuh the files to display the results sorted by filenamess. The loop ends as soon as
         // we filled the results for one page
-        _.each(this._model, function (fullPath) {
-            this._model[fullPath].forEach(function (lineNo) {
+        Object.keys(this._model).forEach(function (fullPath) {
+            self._model[fullPath].forEach(function (lineNo) {
                 bookmarks.push({
                     fullPath: fullPath,
-                    lineNo: lineNo
+                    lineNo: lineNo + 1
                 });
             });
         });
