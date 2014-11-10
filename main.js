@@ -33,15 +33,19 @@ define(function (require, exports, module) {
         ExtensionUtils              = brackets.getModule("utils/ExtensionUtils"),
         Menus                       = brackets.getModule("command/Menus"),
         EditorManager               = brackets.getModule("editor/EditorManager"),
-        _                           = brackets.getModule("thirdparty/lodash"),
+        _                           = brackets.getModule("thirdparty/lodash");
+    
+    // my modules
+    var BookmarksView               = require("view/BookmarksView").BookmarksView,
         ExtensionStrings            = require("strings");
     
 
     /** @const {string} Extension Command ID */
-    var MY_MODULENAME               = "editorPlusPack";
-    var CMD_TOGGLE_BOOKMARK         = "editorPlusPack.toggleBookmark",
-        CMD_GOTO_NEXT_BOOKMARK      = "editorPlusPack.gotoNextBookmark",
-        CMD_GOTO_PREV_BOOKMARK      = "editorPlusPack.gotoPrevBookmark";
+    var MY_MODULENAME               = "bracketsBookmarksExtension";
+    var CMD_TOGGLE_BOOKMARK         = "bracketsBookmarksExtension.toggleBookmark",
+        CMD_GOTO_NEXT_BOOKMARK      = "bracketsBookmarksExtension.gotoNextBookmark",
+        CMD_GOTO_PREV_BOOKMARK      = "bracketsBookmarksExtension.gotoPrevBookmark",
+        CMD_TOGGLE_BOOKKMARK_VIEW   = "bracketsBookmarksExtension.toggleBookmarksPanel";
     
     /* Our extension's preferences */
     var prefs = PreferencesManager.getExtensionPrefs(MY_MODULENAME);
@@ -49,7 +53,11 @@ define(function (require, exports, module) {
     // Define a preference to keep track of how many times our extension has been ivoked
     prefs.definePreference("bookmarks", "object", {});
 
+    // Bookmarks Data Model
     var _bookmarks = {};
+    
+    // Bookmarks Panel
+    var _bookmarksPanel = null;
     
     /**
      * Saves bookmarks to the internal cache for the specified editor instance
@@ -184,6 +192,24 @@ define(function (require, exports, module) {
         }
     }
     
+    function isBookmarkPanelVisible() {
+        return (_bookmarksPanel && _bookmarksPanel.isOpen());
+    }
+    
+    function toggleBookmarkPanel() {
+        if (_bookmarksPanel) {
+            if (_bookmarksPanel.isOpen()) {
+                _bookmarksPanel.close();
+            } else {
+                _bookmarksPanel.open();
+            }
+        } else {
+            _bookmarksPanel = new BookmarksView(_bookmarks);
+        }
+        
+        //CommandManager.setChecked(CommandManager.get(CMD_TOGGLE_BOOKKMARK_VIEW), isBookmarkPanelVisible());
+    }
+    
     // load our styles
     ExtensionUtils.loadStyleSheet(module, "styles/styles.css");
     
@@ -200,16 +226,21 @@ define(function (require, exports, module) {
     menu.addMenuItem(CMD_GOTO_NEXT_BOOKMARK, "Ctrl-P");
     menu.addMenuItem(CMD_GOTO_PREV_BOOKMARK, "Ctrl-Shift-P");
     
+    menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
+    CommandManager.register(ExtensionStrings.TOGGLE_BOOKMARK_PANEL, CMD_TOGGLE_BOOKKMARK_VIEW, toggleBookmarkPanel);
+    menu.addMenuDivider();
+    menu.addMenuItem(CMD_TOGGLE_BOOKKMARK_VIEW);
+    
     // event handlers
     //  note: this is an undocumented, unsupported event when an editor is created
     // @TODO: invent a standard event
     $(EditorManager).on("_fullEditorCreatedForDocument", function (e, document, editor) {
-        $(editor).on("beforeDestroy.epp", function () {
+        $(editor).on("beforeDestroy.bookmarks", function () {
             saveBookmarks(editor);
-            $(editor).off(".epp");
-            $(document).off(".epp");
+            $(editor).off(".bookmarks");
+            $(document).off(".bookmarks");
         });
-        $(document).on("change.epp", function () {
+        $(document).on("change.bookmarks", function () {
             resetBookmarks(editor);
         });
         loadBookmarks(editor);

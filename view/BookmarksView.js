@@ -92,19 +92,15 @@ define(function (require, exports, module) {
      * @private
      * Handles when model changes. Updates the view, buffering changes if necessary so as not to churn too much.
      */
-    BookmarksView.prototype._handleModelChange = function (quickChange) {
+    BookmarksView.prototype._handleModelChange = function () {
         var self = this;
         if (this._timeoutID) {
             window.clearTimeout(this._timeoutID);
         }
-        if (quickChange) {
-            this._timeoutID = window.setTimeout(function () {
-                self._updateResults();
-                self._timeoutID = null;
-            }, UPDATE_TIMEOUT);
-        } else {
-            this._updateResults();
-        }
+        this._timeoutID = window.setTimeout(function () {
+            self._updateResults();
+            self._timeoutID = null;
+        }, UPDATE_TIMEOUT);
     };
     
     /**
@@ -181,8 +177,7 @@ define(function (require, exports, module) {
         // asynchronous process kicks this (e.g. a debounced model change), we double-check.
         if (this._panel.isVisible()) {
             var scrollTop  = this._$table.scrollTop(),
-                index      = this._$selectedRow ? this._$selectedRow.index() : null,
-                numMatches = this._model.countFilesMatches().matches;
+                index      = this._$selectedRow ? this._$selectedRow.index() : null;
             this._render();
             this._$table.scrollTop(scrollTop);
             if (index) {
@@ -212,6 +207,13 @@ define(function (require, exports, module) {
             $(this._model).off("change.BookmarksView");
             $(this).triggerHandler("close");
         }
+    };
+    
+        /**
+     * Hides the Search Results Panel and unregisters listeners.
+     */
+    BookmarksView.prototype.isOpen = function () {
+        return (this._panel && this._panel.isVisible());
     };
     
     // Public API
