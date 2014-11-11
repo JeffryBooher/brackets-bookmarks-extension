@@ -13,3 +13,7 @@
 .active-pane .bookmark.live-preview-sync-error .CodeMirror-linenumber {
     background-color: mediumorchid !important;
 }
+
+.bookmark-notify {
+    background-color: dodgerblue;
+}

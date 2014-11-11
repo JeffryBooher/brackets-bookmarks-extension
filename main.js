@@ -172,35 +172,44 @@ define(function (require, exports, module) {
                 cursor = editor.getCursorPos(),
                 bm = _bookmarks[editor.document.file.fullPath];
 
+            var doJump = function (lineNo) {
+                editor.setCursorPos(lineNo, 0);
+
+                var cm = editor._codeMirror;
+                cm.addLineClass(lineNo, "wrap", "bookmark-notify");
+                setTimeout(function () {
+                    cm.removeLineClass(lineNo, "wrap", "bookmark-notify");
+                }, 100);
+            };
+            
             // find next bookmark
             var index;
             for (index = (forward ? 0 : bm.length - 1); forward ? (index < bm.length) : (index >= 0); forward ? (index++) : (index--)) {
                 if (forward) {
                     if (bm[index] > cursor.line) {
-                        editor.setCursorPos(bm[index], 0);
+                        doJump(bm[index]);
                         return;
                     }
                     if (index === bm.length - 1) {
                         // wrap around just pick the first one in the list
                         if (bm[0] !== cursor.line) {
-                            editor.setCursorPos(bm[0], 0);
+                            doJump(bm[0]);
                         }
                         return;
                     }
                 } else {
                     if (bm[index] < cursor.line) {
-                        editor.setCursorPos(bm[index], 0);
+                        doJump(bm[index]);
                         return;
                     }
                     if (index === 0) {
                         // wrap around just pick the last one in the list
                         if (bm[bm.length - 1] !== cursor.line) {
-                            editor.setCursorPos(bm[bm.length - 1], 0);
+                            doJump(bm[bm.length - 1]);
                         }
                         return;
                     }
                 }
-                
             }
         }
     }
