@@ -238,6 +238,8 @@ define(function (require, exports, module) {
         } else {
             _bookmarksPanel.open();
         }
+
+        CommandManager.get(CMD_TOGGLE_BOOKKMARK_VIEW).setChecked(_bookmarksPanel.isOpen());
     }
     
     // load our styles
