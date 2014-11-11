@@ -48,11 +48,8 @@ define(function (require, exports, module) {
         CMD_TOGGLE_BOOKKMARK_VIEW   = "bracketsBookmarksExtension.toggleBookmarksPanel";
     
     /* Our extension's preferences */
-    var prefs = PreferencesManager.getExtensionPrefs(MY_MODULENAME);
+    var prefs = PreferencesManager.getPreferenceStorage(module);
     
-    // Define a preference to keep track of how many times our extension has been ivoked
-    prefs.definePreference("bookmarks", "object", {});
-
     // Bookmarks Data Model
     var _bookmarks = {};
     
@@ -89,7 +86,7 @@ define(function (require, exports, module) {
             });
         
             _bookmarks[fullPath] = bookmarkedLines;
-            prefs.setValue("bookmarks", _bookmarks);
+            prefs.set("bookmarks", _bookmarks);
 
             $(_bookmarks).triggerHandler("change");
 
@@ -277,7 +274,7 @@ define(function (require, exports, module) {
     menu.addMenuDivider();
     menu.addMenuItem(CMD_TOGGLE_BOOKKMARK_VIEW);
     
-    _bookmarks = prefs.getValue("bookmarks");
+    _bookmarks = prefs.get("bookmarks") || {};
     
     // event handlers
     //  note: this is an undocumented, unsupported event when an editor is created
