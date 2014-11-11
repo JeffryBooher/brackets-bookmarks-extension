@@ -290,10 +290,10 @@ define(function (require, exports, module) {
     
     /**
      * Creates the bookmarks panel if it's truly needed
-     * @param {Boolean} necessary - true to create the panel, false if it isn't needed
+     * @param {Boolean} panelRequired - true if panel is required. False if not
      */
-    function createBookmarksPanelIfNecessary(necessary) {
-        if (!_bookmarksPanel && necessary) {
+    function createBookmarksPanelIfNecessary(panelRequired) {
+        if (!_bookmarksPanel && panelRequired) {
             _bookmarksPanel = new BookmarksView(_bookmarks, updateBookmarksForCurrentEditor);
 
             $(_bookmarksPanel).on("close", function () {
