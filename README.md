@@ -15,6 +15,10 @@ Bookmarks are serialized and remembered globally. Add bookmarks to a file, close
 
 Bookmarked lines with Live Editing Syntax Errors will show using a different color
 
+ `View > Show Bookmarks Panel` To see all bookmarks of open files (open, temporary views and views of files in the working set which may not have been open yet) 
+
+
+
 ##TODO
 1. Localize. I've set this extension up for localization so please contribute pull requests to translate this extension
 1. Sync bookmarks if files are changed externally... Use a hash of the line maybe?
