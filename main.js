@@ -33,15 +33,19 @@ define(function (require, exports, module) {
         ExtensionUtils              = brackets.getModule("utils/ExtensionUtils"),
         Menus                       = brackets.getModule("command/Menus"),
         EditorManager               = brackets.getModule("editor/EditorManager"),
-        _                           = brackets.getModule("thirdparty/lodash"),
+        _                           = brackets.getModule("thirdparty/lodash");
+    
+    // my modules
+    var BookmarksView               = require("view/BookmarksView").BookmarksView,
         ExtensionStrings            = require("strings");
     
 
     /** @const {string} Extension Command ID */
-    var MY_MODULENAME               = "editorPlusPack";
-    var CMD_TOGGLE_BOOKMARK         = "editorPlusPack.toggleBookmark",
-        CMD_GOTO_NEXT_BOOKMARK      = "editorPlusPack.gotoNextBookmark",
-        CMD_GOTO_PREV_BOOKMARK      = "editorPlusPack.gotoPrevBookmark";
+    var MY_MODULENAME               = "bracketsBookmarksExtension";
+    var CMD_TOGGLE_BOOKMARK         = "bracketsBookmarksExtension.toggleBookmark",
+        CMD_GOTO_NEXT_BOOKMARK      = "bracketsBookmarksExtension.gotoNextBookmark",
+        CMD_GOTO_PREV_BOOKMARK      = "bracketsBookmarksExtension.gotoPrevBookmark",
+        CMD_TOGGLE_BOOKKMARK_VIEW   = "bracketsBookmarksExtension.toggleBookmarksPanel";
     
     /* Our extension's preferences */
     var prefs = PreferencesManager.getExtensionPrefs(MY_MODULENAME);
@@ -49,16 +53,21 @@ define(function (require, exports, module) {
     // Define a preference to keep track of how many times our extension has been ivoked
     prefs.definePreference("bookmarks", "object", {});
 
-    // This is the model
+    // Bookmarks Data Model
     var _bookmarks = {};
     
+    // Bookmarks Panel
+    var _bookmarksPanel = null;
+    
     /**
-     * Updates the model with bookmarked line information for the 
-     *  specified editor instance
-     * @param {!Editor} editor - brackets editor instance
+     * Saves bookmarks to the data model for the specified editor instance 
+     * @param {Editor=} editor - brackets editor instance. current editor if null
      * @return {?Array.<Number>} array of cached bookmarked line numbers
      */
     function saveBookmarks(editor) {
+        if (!editor) {
+            editor = EditorManager.getCurrentFullEditor();
+        }
         if (editor) {
             var i,
                 fullPath = editor.document.file.fullPath,
@@ -80,26 +89,65 @@ define(function (require, exports, module) {
             });
         
             _bookmarks[fullPath] = bookmarkedLines;
+            $(_bookmarks).triggerHandler("change");
+
+            // return the bookmarks for the editor
             return bookmarkedLines;
         }
         return null;
     }
     
     /**
-     * Clears the model for the specified editor instance
+     * Updates bookmarks for the current editor if necessary
+     * @param {Editor=} editor - brackets editor instance. current editor if null
+     * @return {Boolean} true if there are bookmarks for the current editor, false if not
+     */
+    function updateBookmarksForCurrentEditor() {
+        var result = false,
+            editor = EditorManager.getCurrentFullEditor();
+        if (editor) {
+            var cursor = editor.getCursorPos(),
+                fullPath = editor.document.file.fullPath,
+                bm = _bookmarks[fullPath];
+
+            // if there was already data then we 
+            //  don't need to rebuild it
+            result = (bm && !bm.length);
+            
+            if (!result) {
+                // there was no deta for this file so 
+                //  rebuild the model just for this file
+                //  from what is in the editor currently
+                result = Boolean(saveBookmarks(editor));
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Resets the bookmarks for the file opened in the specified editor
+     * NOTE: When the bookmarks for the current editor are needed 
+     *          (for traversal or to update the bookmarks panel), 
+     *          updateBookmarksForCurrentEditor is called which updates
+     *          incrementally the bookmarks for the current file
      * @param {!Editor} editor - brackets editor instance
      */
     function resetBookmarks(editor) {
         if (editor) {
             delete _bookmarks[editor.document.file.fullPath];
+            $(_bookmarks).triggerHandler("change");
         }
     }
     
     /**
-     * Loads the model into the specified editor instance
-     * @param {!Editor} editor - brackets editor instance
+     * Loads the cached bookmarks into the specified editor instance
+     * @param {Editor=} editor - brackets editor instance. current editor if null
      */
     function loadBookmarks(editor) {
+        if (!editor) {
+            editor = EditorManager.getCurrentFullEditor();
+        }
         if (editor) {
             var cm = editor._codeMirror,
                 bm = _bookmarks[editor.document.file.fullPath];
@@ -115,34 +163,24 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Traverses to cursor position to the next bookmark 
-     *   in the specified editor instance
+     * Moves the cursor position of the current editor to the next bookmark 
      * @param {!Editor} editor - brackets editor instance
      */
     function gotoNextBookmark(forward) {
-        var editor = EditorManager.getCurrentFullEditor();
+        if (updateBookmarksForCurrentEditor()) {
+            var editor = EditorManager.getCurrentFullEditor(),
+                cursor = editor.getCursorPos(),
+                bm = _bookmarks[editor.document.file.fullPath];
 
-        function doJump(lineNo) {
-            editor.setCursorPos(lineNo, 0);
-            
-            var cm = editor._codeMirror;
-            cm.addLineClass(lineNo, "wrap", "bookmark-notify");
-            setTimeout(function () {
-                cm.removeLineClass(lineNo, "wrap", "bookmark-notify");
-            }, 100);
-        }
-        
-        if (editor) {
-            var cursor = editor.getCursorPos(),
-                fullPath = editor.document.file.fullPath,
-                bm = _bookmarks[fullPath];
+            var doJump = function (lineNo) {
+                editor.setCursorPos(lineNo, 0);
 
-            if (!bm || !bm.length) {
-                bm = saveBookmarks(editor);
-                if (!bm) {
-                    return;
-                }
-            }
+                var cm = editor._codeMirror;
+                cm.addLineClass(lineNo, "wrap", "bookmark-notify");
+                setTimeout(function () {
+                    cm.removeLineClass(lineNo, "wrap", "bookmark-notify");
+                }, 100);
+            };
             
             // find next bookmark
             var index;
@@ -196,6 +234,23 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Creates and/or Shows or Hides the bookmarks panel
+     */
+    function toggleBookmarksPanel() {
+        if (!_bookmarksPanel) {
+            _bookmarksPanel = new BookmarksView(_bookmarks, updateBookmarksForCurrentEditor);
+        }
+        
+        if (_bookmarksPanel.isOpen()) {
+            _bookmarksPanel.close();
+        } else {
+            _bookmarksPanel.open();
+        }
+
+        CommandManager.get(CMD_TOGGLE_BOOKKMARK_VIEW).setChecked(_bookmarksPanel.isOpen());
+    }
+    
     // load our styles
     ExtensionUtils.loadStyleSheet(module, "styles/styles.css");
     
@@ -212,16 +267,21 @@ define(function (require, exports, module) {
     menu.addMenuItem(CMD_GOTO_NEXT_BOOKMARK, "Ctrl-P");
     menu.addMenuItem(CMD_GOTO_PREV_BOOKMARK, "Ctrl-Shift-P");
     
+    menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
+    CommandManager.register(ExtensionStrings.TOGGLE_BOOKMARKS_PANEL, CMD_TOGGLE_BOOKKMARK_VIEW, toggleBookmarksPanel);
+    menu.addMenuDivider();
+    menu.addMenuItem(CMD_TOGGLE_BOOKKMARK_VIEW);
+    
     // event handlers
     //  note: this is an undocumented, unsupported event when an editor is created
     // @TODO: invent a standard event
     $(EditorManager).on("_fullEditorCreatedForDocument", function (e, document, editor) {
-        $(editor).on("beforeDestroy.epp", function () {
+        $(editor).on("beforeDestroy.bookmarks", function () {
             saveBookmarks(editor);
-            $(editor).off(".epp");
-            $(document).off(".epp");
+            $(editor).off(".bookmarks");
+            $(document).off(".bookmarks");
         });
-        $(document).on("change.epp", function () {
+        $(document).on("change.bookmarks", function () {
             resetBookmarks(editor);
         });
         loadBookmarks(editor);
