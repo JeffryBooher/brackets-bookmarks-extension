@@ -97,6 +97,29 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Updates bookmarks for the current editor if necessary
+     * @param {Editor=} editor - brackets editor instance. current editor if null
+     * @return {Boolean} true if there are bookmarks for the current editor, false if not
+     */
+    function updateBookmarksForCurrentEditor() {
+        var result = false,
+            editor = EditorManager.getCurrentFullEditor();
+        if (editor) {
+            var cursor = editor.getCursorPos(),
+                fullPath = editor.document.file.fullPath,
+                bm = _bookmarks[fullPath];
+
+            result = (bm && !bm.length);
+            
+            if (!result) {
+                result = Boolean(saveBookmarks(editor));
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
      * Clears the internal cache for the specified editor instance
      * @param {!Editor} editor - brackets editor instance
      */
@@ -136,19 +159,11 @@ define(function (require, exports, module) {
      * @param {!Editor} editor - brackets editor instance
      */
     function gotoNextBookmark(forward) {
-        var editor = EditorManager.getCurrentFullEditor();
-        if (editor) {
-            var cursor = editor.getCursorPos(),
-                fullPath = editor.document.file.fullPath,
-                bm = _bookmarks[fullPath];
+        if (updateBookmarksForCurrentEditor()) {
+            var editor = EditorManager.getCurrentFullEditor(),
+                cursor = editor.getCursorPos(),
+                bm = _bookmarks[editor.document.file.fullPath];
 
-            if (!bm || !bm.length) {
-                bm = saveBookmarks(editor);
-                if (!bm) {
-                    return;
-                }
-            }
-            
             // find next bookmark
             var index;
             for (index = (forward ? 0 : bm.length - 1); forward ? (index < bm.length) : (index >= 0); forward ? (index++) : (index--)) {

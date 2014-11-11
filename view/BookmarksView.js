@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         FileUtils             = brackets.getModule("file/FileUtils"),
         FindUtils             = brackets.getModule("search/FindUtils"),
         WorkspaceManager      = brackets.getModule("view/WorkspaceManager"),
+        MainViewManger        = brackets.getModule("view/MainViewManager"),
         _                     = brackets.getModule("thirdparty/lodash"),
 
         StringUtils           = brackets.getModule("utils/StringUtils"),
@@ -54,6 +55,12 @@ define(function (require, exports, module) {
      */
     var UPDATE_TIMEOUT   = 400;
 
+    /**
+     * @const
+     * MainViewManager events
+     * @type {string}
+     */
+    var MVM_EVENTS = "workingSetAdd workingSetAddList workingSetMove workingSetRemove workingSetRemoveList workingSetUpdate currentFileChange activePaneChange";
     /**
      * @constructor
      * Creates a bookmarks panel
@@ -133,7 +140,7 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPathAndLineNo});
                 }
             });
-        
+        $(MainViewManger).on(MVM_EVENTS, this._updateResults.bind(this));
     };
 
     /**
@@ -150,14 +157,21 @@ define(function (require, exports, module) {
         
         // Iterates throuh the files to display the results sorted by filenamess. The loop ends as soon as
         // we filled the results for one page
-        Object.keys(this._model).forEach(function (fullPath) {
-            self._model[fullPath].forEach(function (lineNo) {
-                bookmarks.push({
-                    fullPath: fullPath,
-                    lineNo: lineNo + 1
+        Object.keys(this._model)
+            .filter(function (fullPath) {
+                return Boolean(MainViewManger._getPaneIdForPath(fullPath));
+            })
+            .sort(function (a, b) {
+                return a > b;
+            })
+            .forEach(function (fullPath) {
+                self._model[fullPath].forEach(function (lineNo) {
+                    bookmarks.push({
+                        fullPath: fullPath,
+                        lineNo: lineNo + 1
+                    });
                 });
             });
-        });
         
         // Insert the search results
         this._$table
