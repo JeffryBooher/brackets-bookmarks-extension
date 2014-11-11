@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, window, $, Mustache, navigator */
+/*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -89,6 +89,8 @@ define(function (require, exports, module) {
             });
         
             _bookmarks[fullPath] = bookmarkedLines;
+            prefs.setValue("bookmarks", _bookmarks);
+
             $(_bookmarks).triggerHandler("change");
 
             // return the bookmarks for the editor
@@ -106,8 +108,7 @@ define(function (require, exports, module) {
         var result = false,
             editor = EditorManager.getCurrentFullEditor();
         if (editor) {
-            var cursor = editor.getCursorPos(),
-                fullPath = editor.document.file.fullPath,
+            var fullPath = editor.document.file.fullPath,
                 bm = _bookmarks[fullPath];
 
             // if there was already data then we 
@@ -275,6 +276,8 @@ define(function (require, exports, module) {
     CommandManager.register(ExtensionStrings.TOGGLE_BOOKMARKS_PANEL, CMD_TOGGLE_BOOKKMARK_VIEW, toggleBookmarksPanel);
     menu.addMenuDivider();
     menu.addMenuItem(CMD_TOGGLE_BOOKKMARK_VIEW);
+    
+    _bookmarks = prefs.getValue("bookmarks");
     
     // event handlers
     //  note: this is an undocumented, unsupported event when an editor is created
