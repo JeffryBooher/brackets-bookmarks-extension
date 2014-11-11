@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         CommandManager              = brackets.getModule("command/CommandManager"),
         ExtensionUtils              = brackets.getModule("utils/ExtensionUtils"),
         Menus                       = brackets.getModule("command/Menus"),
+        DocumentManager             = brackets.getModule("document/DocumentManager"),
         EditorManager               = brackets.getModule("editor/EditorManager"),
         _                           = brackets.getModule("thirdparty/lodash");
     
@@ -41,14 +42,14 @@ define(function (require, exports, module) {
     
 
     /** @const {string} Extension Command ID */
-    var MY_MODULENAME               = "bracketsBookmarksExtension";
-    var CMD_TOGGLE_BOOKMARK         = "bracketsBookmarksExtension.toggleBookmark",
-        CMD_GOTO_NEXT_BOOKMARK      = "bracketsBookmarksExtension.gotoNextBookmark",
-        CMD_GOTO_PREV_BOOKMARK      = "bracketsBookmarksExtension.gotoPrevBookmark",
-        CMD_TOGGLE_BOOKKMARK_VIEW   = "bracketsBookmarksExtension.toggleBookmarksPanel";
+    var MY_MODULENAME               = "bracketsEditorBookmarks";
+    var CMD_TOGGLE_BOOKMARK         = "bracketsEditorBookmarks.toggleBookmark",
+        CMD_GOTO_NEXT_BOOKMARK      = "bracketsEditorBookmarks.gotoNextBookmark",
+        CMD_GOTO_PREV_BOOKMARK      = "bracketsEditorBookmarks.gotoPrevBookmark",
+        CMD_TOGGLE_BOOKKMARK_VIEW   = "bracketsEditorBookmarks.toggleBookmarksPanel";
     
     /* Our extension's preferences */
-    var prefs = PreferencesManager.getPreferenceStorage(module);
+    var prefs = PreferencesManager.getExtensionPrefs(MY_MODULENAME);
     
     // Bookmarks Data Model
     var _bookmarks = {};
@@ -137,7 +138,7 @@ define(function (require, exports, module) {
             $(_bookmarks).triggerHandler("change");
         }
     }
-    
+
     /**
      * Loads the cached bookmarks into the specified editor instance
      * @param {Editor=} editor - brackets editor instance. current editor if null
@@ -160,6 +161,61 @@ define(function (require, exports, module) {
         }
     }
 
+    
+    /**
+     * Removes all bookmarks from the editor 
+     * @param {!Editor} editor - brackets editor instance. 
+     */
+    function clearBookmarks(editor) {
+        var i,
+            cm = editor._codeMirror,
+            lineCount = cm.doc.lineCount();
+
+        for (i = 0; i < lineCount; i++) {
+            cm.removeLineClass(i, "wrap", "bookmark");
+        }
+    }
+    
+    /**
+     * Resets all bookmark model data so it can be re-read from prefs
+     */
+    function resetModel() {
+        Object.keys(_bookmarks).forEach(function (prop) {
+            delete _bookmarks[prop];
+        });
+    }
+    
+    /**
+     * Loads bookmark model from prefs
+     */
+    function loadModel() {
+        resetModel();
+        _.assign(_bookmarks, prefs.get("bookmarks"));
+    }
+    
+    /**
+     * Reloads the bookmark model, clearing the current bookmarks
+     * @param {!Editor} editor - brackets editor instance. 
+     */
+    function reloadModel() {
+        DocumentManager.getAllOpenDocuments().forEach(function (doc) {
+            if (doc._masterEditor) {
+                clearBookmarks(doc._masterEditor);
+            }
+        });
+        
+        loadModel();
+        
+        DocumentManager.getAllOpenDocuments().forEach(function (doc) {
+            if (doc._masterEditor) {
+                loadBookmarks(doc._masterEditor);
+            }
+        });
+
+        // update the panel
+        $(_bookmarks).triggerHandler("change");
+    }
+    
     /**
      * Moves the cursor position of the current editor to the next bookmark 
      * @param {!Editor} editor - brackets editor instance
@@ -233,25 +289,68 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Creates and/or Shows or Hides the bookmarks panel
+     * Creates the bookmarks panel if it's truly needed
+     * @param {Boolean} necessary - true to create the panel, false if it isn't needed
      */
-    function toggleBookmarksPanel() {
-        if (!_bookmarksPanel) {
+    function createBookmarksPanelIfNecessary(necessary) {
+        if (!_bookmarksPanel && necessary) {
             _bookmarksPanel = new BookmarksView(_bookmarks, updateBookmarksForCurrentEditor);
 
             $(_bookmarksPanel).on("close", function () {
                 CommandManager.get(CMD_TOGGLE_BOOKKMARK_VIEW).setChecked(_bookmarksPanel.isOpen());
             });
         }
-        
-        if (_bookmarksPanel.isOpen()) {
-            _bookmarksPanel.close();
-        } else {
-            _bookmarksPanel.open();
+    }
+    
+    /**
+     * Shows the bookmarks panel
+     * @param {Boolean} show - true to show the panel, false to hide it
+     */
+    function showBookmarksPanel(show) {
+        // we only need to create it if we're showing it
+        createBookmarksPanelIfNecessary(show);
+        if (!_bookmarksPanel) {
+            // nothing to do, panel wasn't created
+            return;
         }
 
+        // show/hide the panel
+        if (show) {
+            _bookmarksPanel.open();
+        } else {
+            _bookmarksPanel.close();
+        }
+
+        // update the command state
         CommandManager.get(CMD_TOGGLE_BOOKKMARK_VIEW).setChecked(_bookmarksPanel.isOpen());
     }
+    
+    /**
+     * Creates and/or Shows or Hides the bookmarks panel
+     */
+    function toggleBookmarksPanel() {
+        // always create it 
+        createBookmarksPanelIfNecessary(true);
+        showBookmarksPanel(_bookmarksPanel.isOpen());
+        // Since this is the only user-facing command then
+        //  we can safely update the prefs here...
+        // Updating it in showBookmarksPanel could result in 
+        //  a race condition so we would need a way to 
+        //  indicate whether we were initializing from prefs
+        //  or some other method in showBookmarksPanel. 
+        // For now, we can just assume that showBookmarksPanel
+        //  is not a consumable API, just a helper
+        prefs.set("panelVisible", _bookmarksPanel.isOpen());
+    }
+
+    /**
+     * Updates the state from prefs
+     */
+    function updateFromPrefs() {
+        reloadModel();
+        showBookmarksPanel(prefs.get("panelVisible"));
+    }
+    
     
     // load our styles
     ExtensionUtils.loadStyleSheet(module, "styles/styles.css");
@@ -274,10 +373,16 @@ define(function (require, exports, module) {
     menu.addMenuDivider();
     menu.addMenuItem(CMD_TOGGLE_BOOKKMARK_VIEW);
     
-    _bookmarks = prefs.get("bookmarks") || {};
+    // define prefs
+    prefs.definePreference("bookmarks",  "object", {});
+    prefs.definePreference("panelVisible", "boolean", false);
+    
+    // Initialize 
+    loadModel();
+    showBookmarksPanel(prefs.get("panelVisible"));
     
     // event handlers
-    //  note: this is an undocumented, unsupported event when an editor is created
+    // NOTE: this is an undocumented, unsupported event fired when an editor is created
     // @TODO: invent a standard event
     $(EditorManager).on("_fullEditorCreatedForDocument", function (e, document, editor) {
         $(editor).on("beforeDestroy.bookmarks", function () {
@@ -290,4 +395,8 @@ define(function (require, exports, module) {
         });
         loadBookmarks(editor);
     });
+    
+    // prefs change handler, dump everything and reload from prefs
+    prefs.on("change", updateFromPrefs);
+    
 });
