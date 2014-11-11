@@ -16,8 +16,7 @@ Bookmarks are serialized and remembered globally. Add bookmarks to a file, close
 Bookmarked lines with Live Editing Syntax Errors will show using a different color
 
 ##TODO
--[ ] Localize. I've set this extension up for localization so please contribute pull requests to translate this extension
--[x] Bookmarks panel. Show the bookmarks in all open documents and recall or delete them.
--[ ] Sync bookmarks if files are changed externally... Use a hash of the line maybe?
--[ ] Better Bookmark Affordance (@larz0) especially when bookmarking lines in files with more than 999 lines since the bookmark UI encroaches on the line number
--[ ] Bookmark UI when line numbers are turned off 
+1. Localize. I've set this extension up for localization so please contribute pull requests to translate this extension
+1. Sync bookmarks if files are changed externally... Use a hash of the line maybe?
+1. Better Bookmark Affordance (@larz0) especially when bookmarking lines in files with more than 999 lines since the bookmark UI encroaches on the line number
+1. Bookmark UI when line numbers are turned off 
