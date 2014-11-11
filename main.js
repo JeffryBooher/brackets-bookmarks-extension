@@ -112,7 +112,7 @@ define(function (require, exports, module) {
 
             // if there was already data then we 
             //  don't need to rebuild it
-            result = (bm && !bm.length);
+            result = (bm && bm.length);
             
             if (!result) {
                 // there was no deta for this file so 
