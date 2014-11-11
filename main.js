@@ -60,7 +60,7 @@ define(function (require, exports, module) {
     var _bookmarksPanel = null;
     
     /**
-     * Saves bookmarks to the internal cache for the specified editor instance
+     * Saves bookmarks to the data model for the specified editor instance 
      * @param {Editor=} editor - brackets editor instance. current editor if null
      * @return {?Array.<Number>} array of cached bookmarked line numbers
      */
@@ -91,6 +91,7 @@ define(function (require, exports, module) {
             _bookmarks[fullPath] = bookmarkedLines;
             $(_bookmarks).triggerHandler("change");
 
+            // return the bookmarks for the editor
             return bookmarkedLines;
         }
         return null;
@@ -109,9 +110,14 @@ define(function (require, exports, module) {
                 fullPath = editor.document.file.fullPath,
                 bm = _bookmarks[fullPath];
 
+            // if there was already data then we 
+            //  don't need to rebuild it
             result = (bm && !bm.length);
             
             if (!result) {
+                // there was no deta for this file so 
+                //  rebuild the model just for this file
+                //  from what is in the editor currently
                 result = Boolean(saveBookmarks(editor));
             }
         }
@@ -120,7 +126,11 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Clears the internal cache for the specified editor instance
+     * Resets the bookmarks for the file opened in the specified editor
+     * NOTE: When the bookmarks for the current editor are needed 
+     *          (for traversal or to update the bookmarks panel), 
+     *          updateBookmarksForCurrentEditor is called which updates
+     *          incrementally the bookmarks for the current file
      * @param {!Editor} editor - brackets editor instance
      */
     function resetBookmarks(editor) {
