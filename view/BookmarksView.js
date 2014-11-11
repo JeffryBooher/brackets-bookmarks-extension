@@ -73,7 +73,7 @@ define(function (require, exports, module) {
      */
     function BookmarksView(model, beforeRender) {
         var panelHtml  = Mustache.render(bookmarksPanelTemplate, {
-                Strings:     Strings
+                Strings:  Strings
             });
 
         this._panel         = WorkspaceManager.createBottomPanel("bookmarks", $(panelHtml), 100);

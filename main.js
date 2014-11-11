@@ -128,7 +128,6 @@ define(function (require, exports, module) {
             delete _bookmarks[editor.document.file.fullPath];
             $(_bookmarks).triggerHandler("change");
         }
-        
     }
     
     /**
@@ -154,8 +153,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Traverses to cursor position to the next bookmark 
-     *   in the specified editor instance
+     * Moves the cursor position of the current editor to the next bookmark 
      * @param {!Editor} editor - brackets editor instance
      */
     function gotoNextBookmark(forward) {
@@ -217,13 +215,12 @@ define(function (require, exports, module) {
         }
     }
     
-    function isBookmarkPanelVisible() {
-        return (_bookmarksPanel && _bookmarksPanel.isOpen());
-    }
-    
-    function toggleBookmarkPanel() {
+    /**
+     * Creates and/or Shows or Hides the bookmarks panel
+     */
+    function toggleBookmarksPanel() {
         if (!_bookmarksPanel) {
-            _bookmarksPanel = new BookmarksView(_bookmarks, saveBookmarks);
+            _bookmarksPanel = new BookmarksView(_bookmarks, updateBookmarksForCurrentEditor);
         }
         
         if (_bookmarksPanel.isOpen()) {
@@ -250,7 +247,7 @@ define(function (require, exports, module) {
     menu.addMenuItem(CMD_GOTO_PREV_BOOKMARK, "Ctrl-Shift-P");
     
     menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
-    CommandManager.register(ExtensionStrings.TOGGLE_BOOKMARKS_PANEL, CMD_TOGGLE_BOOKKMARK_VIEW, toggleBookmarkPanel);
+    CommandManager.register(ExtensionStrings.TOGGLE_BOOKMARKS_PANEL, CMD_TOGGLE_BOOKKMARK_VIEW, toggleBookmarksPanel);
     menu.addMenuDivider();
     menu.addMenuItem(CMD_TOGGLE_BOOKKMARK_VIEW);
     
