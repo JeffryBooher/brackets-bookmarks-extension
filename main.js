@@ -240,6 +240,10 @@ define(function (require, exports, module) {
     function toggleBookmarksPanel() {
         if (!_bookmarksPanel) {
             _bookmarksPanel = new BookmarksView(_bookmarks, updateBookmarksForCurrentEditor);
+
+            $(_bookmarksPanel).on("close", function () {
+                CommandManager.get(CMD_TOGGLE_BOOKKMARK_VIEW).setChecked(_bookmarksPanel.isOpen());
+            });
         }
         
         if (_bookmarksPanel.isOpen()) {
