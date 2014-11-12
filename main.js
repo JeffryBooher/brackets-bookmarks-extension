@@ -331,7 +331,7 @@ define(function (require, exports, module) {
     function toggleBookmarksPanel() {
         // always create it 
         createBookmarksPanelIfNecessary(true);
-        showBookmarksPanel(_bookmarksPanel.isOpen());
+        showBookmarksPanel(!_bookmarksPanel.isOpen());
         // Since this is the only user-facing command then
         //  we can safely update the prefs here...
         // Updating it in showBookmarksPanel could result in 
