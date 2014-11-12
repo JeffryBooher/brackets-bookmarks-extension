@@ -3,7 +3,7 @@
     "title": "Brackets Editor Bookmarks",
     "description": "Bookmark lines in the editor as you work so you can quickly jump back to them later.  Open the \"Bookmarks\" Panel to see all of the bookmarks and open them in the editor.",
     "homepage": "https://github.com/JeffryBooher/brackets-bookmarks-extension",
-    "version": "0.9.2",
+    "version": "0.9.3",
     "author": "Jeffry Booher|jsbooher@adobe.com (http://www.facebook.com/JeffryBooher)|@JeffryBooher",
     "license": "MIT",
     "i18n": [
