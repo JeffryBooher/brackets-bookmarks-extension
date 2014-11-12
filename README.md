@@ -1,4 +1,4 @@
-Brackets Bokmarks Extension
+Brackets Bookmarks Extension
 ============================
 
 This Extension provides functionality to bookmark lines in [Brackets](https://github.com/adobe/brackets).  
