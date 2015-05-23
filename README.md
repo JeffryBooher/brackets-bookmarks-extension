@@ -34,7 +34,7 @@ Add the following to your Brackets preferences file to show all bookmarks
 
 the default for the "show" preference is "opened".  
 
-Protip: Setting the show preference "all" will enable you to quickly jump between files in other projects.
+**ProTip**: Setting the show preference "all" will enable you to quickly jump between files in other projects.
 
 ##TODO
 1. Localize. I've set this extension up for localization so please contribute pull requests to translate this extension
