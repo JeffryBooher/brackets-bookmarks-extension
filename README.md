@@ -23,14 +23,14 @@ Add the following to your Brackets preferences file to show all bookmarks within
 
     "bracketsEditorBookmarks.viewOptions": {
         "show": "project"
-    },
+    }
 
 
 Add the following to your Brackets preferences file to show all bookmarks
 
     "bracketsEditorBookmarks.viewOptions": {
         "show": "all"
-    },
+    }
 
 the default for the "show" preference is "opened".  
 
