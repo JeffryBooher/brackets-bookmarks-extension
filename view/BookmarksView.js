@@ -159,14 +159,15 @@ define(function (require, exports, module) {
      * @param {!String} fullpath - path of the file to show
      */
     BookmarksView.prototype._shouldShow = function (fullpath) {
-        if (!this._options || !this._options.show === "opened") {
+        if (!this._options || !this._options.show || this._options.show === "opened") {
             return Boolean(MainViewManger._getPaneIdForPath(fullPath));
         } else if (this._options.show === "all") {
             return true;
         } else if (this._options.show === "project" && ProjectManager.getProjectRoot()) {
             return (fullpath.toLowerCase().indexOf(ProjectManager.getProjectRoot().fullPath.toLowerCase()) === 0);
         }
-        
+
+        // unknown option
         return false;
     }
     
