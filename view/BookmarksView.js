@@ -163,8 +163,11 @@ define(function (require, exports, module) {
             return Boolean(MainViewManger._getPaneIdForPath(fullPath));
         } else if (this._options.show === "all") {
             return true;
+        
         } else if (this._options.show === "project" && ProjectManager.getProjectRoot()) {
-            return (fullpath.toLowerCase().indexOf(ProjectManager.getProjectRoot().fullPath.toLowerCase()) === 0);
+            // show open files and any file bookmarked in the current project
+            return (Boolean(MainViewManger._getPaneIdForPath(fullpath)) ||
+                fullpath.toLowerCase().indexOf(ProjectManager.getProjectRoot().fullPath.toLowerCase()) === 0);
         }
 
         // unknown option
