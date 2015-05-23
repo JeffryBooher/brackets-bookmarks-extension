@@ -305,8 +305,9 @@ define(function (require, exports, module) {
     /**
      * Shows the bookmarks panel
      * @param {Boolean} show - true to show the panel, false to hide it
+     * @param {{show:string=}=} options - undefined, {show: undefined|"opened"|"project"|"all"}, defaults to "opened"
      */
-    function showBookmarksPanel(show) {
+    function showBookmarksPanel(show, options) {
         // we only need to create it if we're showing it
         createBookmarksPanelIfNecessary(show);
         if (!_bookmarksPanel) {
@@ -316,7 +317,7 @@ define(function (require, exports, module) {
 
         // show/hide the panel
         if (show) {
-            _bookmarksPanel.open();
+            _bookmarksPanel.open(options);
         } else {
             _bookmarksPanel.close();
         }
@@ -331,7 +332,7 @@ define(function (require, exports, module) {
     function toggleBookmarksPanel() {
         // always create it 
         createBookmarksPanelIfNecessary(true);
-        showBookmarksPanel(!_bookmarksPanel.isOpen());
+        showBookmarksPanel(!_bookmarksPanel.isOpen(), prefs.get("viewOptions"));
         // Since this is the only user-facing command then
         //  we can safely update the prefs here...
         // Updating it in showBookmarksPanel could result in 
@@ -348,7 +349,7 @@ define(function (require, exports, module) {
      */
     function updateFromPrefs() {
         reloadModel();
-        showBookmarksPanel(prefs.get("panelVisible"));
+        showBookmarksPanel(prefs.get("panelVisible"), prefs.get("viewOptions"));
     }
     
     
@@ -376,21 +377,22 @@ define(function (require, exports, module) {
     // define prefs
     prefs.definePreference("bookmarks",  "object", {});
     prefs.definePreference("panelVisible", "boolean", false);
+    prefs.definePreference("viewOptions", "object", {});
     
     // Initialize 
     loadModel();
-    showBookmarksPanel(prefs.get("panelVisible"));
+    showBookmarksPanel(prefs.get("panelVisible"), prefs.get("viewOptions"));
     
     // event handlers
     // NOTE: this is an undocumented, unsupported event fired when an editor is created
     // @TODO: invent a standard event
-    $(EditorManager).on("_fullEditorCreatedForDocument", function (e, document, editor) {
-        $(editor).on("beforeDestroy.bookmarks", function () {
+    EditorManager.on("_fullEditorCreatedForDocument", function (e, document, editor) {
+        editor.on("beforeDestroy.bookmarks", function () {
             saveBookmarks(editor);
-            $(editor).off(".bookmarks");
-            $(document).off(".bookmarks");
+            editor.off(".bookmarks");
+            document.off(".bookmarks");
         });
-        $(document).on("change.bookmarks", function () {
+        document.on("change.bookmarks", function () {
             resetBookmarks(editor);
         });
         loadBookmarks(editor);

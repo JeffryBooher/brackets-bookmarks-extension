@@ -21,6 +21,8 @@
  * 
  */
 
+/*eslint-rules no-underscore-dangle: false*/
+
 /*global define, brackets, window, $, Mustache, navigator */
 
 /*
@@ -104,12 +106,21 @@ define(function (require, exports, module) {
      */
     BookmarksView.prototype._handleModelChange = function () {
         var self = this;
+        if (self._ignoreModelChangeEvents) {
+            return;
+        }
         if (this._timeoutID) {
             window.clearTimeout(this._timeoutID);
         }
         this._timeoutID = window.setTimeout(function () {
+            // _updateResults causes the model to be recomputed
+            //  which triggers another model change event which
+            //  we need to ignore or we endup in a race condition
+            //  which may lead to data loss
+            self._ignoreModelChangeEvents = true;
             self._updateResults();
             self._timeoutID = null;
+            delete self._ignoreModelChangeEvents;
         }, UPDATE_TIMEOUT);
     };
     
@@ -140,9 +151,26 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPathAndLineNo});
                 }
             });
-        $(MainViewManger).on(MVM_EVENTS, this._updateResults.bind(this));
+        MainViewManger.on(MVM_EVENTS, this._updateResults.bind(this));
     };
 
+    /**
+     * @private
+     * @param {!String} fullpath - path of the file to show
+     */
+    BookmarksView.prototype._shouldShow = function (fullpath) {
+        if (!this._options || !this._options.show || this._options.show === "opened") {
+            return Boolean(MainViewManger._getPaneIdForPath(fullPath));
+        } else if (this._options.show === "all") {
+            return true;
+        } else if (this._options.show === "project" && ProjectManager.getProjectRoot()) {
+            return (fullpath.toLowerCase().indexOf(ProjectManager.getProjectRoot().fullPath.toLowerCase()) === 0);
+        }
+
+        // unknown option
+        return false;
+    }
+    
     /**
      * @private
      * Shows the current set of results.
@@ -159,7 +187,7 @@ define(function (require, exports, module) {
         // we filled the results for one page
         Object.keys(this._model)
             .filter(function (fullPath) {
-                return Boolean(MainViewManger._getPaneIdForPath(fullPath));
+                return self._shouldShow(fullPath);
             })
             .sort(function (a, b) {
                 return a > b;
@@ -208,10 +236,14 @@ define(function (require, exports, module) {
         }
     };
     
+
+    
+    
     /**
      * Opens the results panel and displays the current set of results from the model.
      */
-    BookmarksView.prototype.open = function () {
+    BookmarksView.prototype.open = function (options) {
+        this._options = options;
         this._render();
         this._addPanelListeners();
         $(this._model).on("change.BookmarksView", this._handleModelChange.bind(this));
