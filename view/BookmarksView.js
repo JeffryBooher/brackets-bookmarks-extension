@@ -160,7 +160,7 @@ define(function (require, exports, module) {
      */
     BookmarksView.prototype._shouldShow = function (fullpath) {
         if (!this._options || !this._options.show || this._options.show === "opened") {
-            return Boolean(MainViewManger._getPaneIdForPath(fullPath));
+            return Boolean(MainViewManger._getPaneIdForPath(fullpath));
         } else if (this._options.show === "all") {
             return true;
         
@@ -172,7 +172,7 @@ define(function (require, exports, module) {
 
         // unknown option
         return false;
-    }
+    };
     
     /**
      * @private
