@@ -376,6 +376,7 @@ define(function (require, exports, module) {
     
     // define prefs
     prefs.definePreference("bookmarks",  "object", {});
+    prefs.definePreference("panelVisible", "boolean", false);
     prefs.definePreference("viewOptions", "object", {});
     
     // Initialize 
