@@ -11,6 +11,7 @@
 
 .active-pane .bookmark .CodeMirror-gutter-elt {
     background-color: dodgerblue;
+    display: table;
 }
 
 .active-pane .bookmark.live-preview-sync-error .CodeMirror-linenumber {
@@ -39,4 +40,3 @@
     background-repeat: no-repeat !important;
     color: white !important;
 }
-
