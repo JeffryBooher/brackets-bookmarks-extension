@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -21,26 +21,15 @@
  * 
  */
 
+// Italian - root strings
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define */
 
-define(function (require, exports, module) {
-    
-    'use strict';
-    
-    // Code that needs to display user strings should call require("strings") to load
-    // strings.js. This file will dynamically load strings.js for the specified by bracketes.locale.
-    // 
-    // Translations for other locales should be placed in nls/<locale<optional country code>>/strings.js
-    // Localization is provided via the i18n plugin.
-    // All other bundles for languages need to add a prefix to the exports below so i18n can find them.
-    // TODO: dynamically populate the local prefix list below?
-    module.exports = {
-        root: true,
-        "fr": true,
-        "es": true,
-        "de": true,
-        "ru": true,
-        "it": true
-    };
+define({
+    "TOGGLE_BOOKMARK"                   : "Toggle Bookmark",
+    "GOTO_NEXT_BOOKMARK"                : "Segnalibro successivo",
+    "GOTO_PREV_BOOKMARK"                : "Segnalibro precedente",
+    "TOGGLE_BOOKMARKS_PANEL"            : "Mostra pannello segnalibri",
+    "BOOKMARKS_PANEL_TITLE"             : "Segnalibri"
 });
