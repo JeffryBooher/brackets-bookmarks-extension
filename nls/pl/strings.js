@@ -21,26 +21,15 @@
  * 
  */
 
+// Polish Translation
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define */
 
-define(function (require, exports, module) {
-    
-    'use strict';
-    
-    // Code that needs to display user strings should call require("strings") to load
-    // strings.js. This file will dynamically load strings.js for the specified by bracketes.locale.
-    // 
-    // Translations for other locales should be placed in nls/<locale<optional country code>>/strings.js
-    // Localization is provided via the i18n plugin.
-    // All other bundles for languages need to add a prefix to the exports below so i18n can find them.
-    // TODO: dynamically populate the local prefix list below?
-    module.exports = {
-        root: true,
-        "fr": true,
-        "es": true,
-        "de": true,
-        "ru": true,
-        "it": true
-    };
+define({
+    "TOGGLE_BOOKMARK"                   : "Włącz/Wyłącz Zakładki",
+    "GOTO_NEXT_BOOKMARK"                : "Następna Zakładka",
+    "GOTO_PREV_BOOKMARK"                : "Poprzednia Zakładka",
+    "TOGGLE_BOOKMARKS_PANEL"            : "Pokaż Panel Zakładek",
+    "BOOKMARKS_PANEL_TITLE"             : "Zakładki"
 });
