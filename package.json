@@ -9,7 +9,8 @@
     "i18n": [
         "en",
         "fr",
-        "ru"
+        "ru",
+        "it"
     ],
     "engines": {
         "brackets": ">=0.24.0"
